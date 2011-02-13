@@ -15,6 +15,7 @@ class Project (info: ProjectInfo) extends DefaultWebProject(info) {
   val servletApi = "javax.servlet" % "servlet-api" % servletVersion % "provided"
   val jettyClient = "org.mortbay.jetty" % "jetty-client" % "6.1.25" withSources()
   val httpClient = "commons-httpclient" % "commons-httpclient" % "3.0.1" withSources()
+  val casbah = "com.mongodb.casbah" % "casbah_2.8.1" % "2.0.2"
   // scalaTest
   val scalaTest = "org.scalatest" % "scalatest" % scalaTestVersion % "test"
 
