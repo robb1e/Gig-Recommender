@@ -41,6 +41,12 @@ class Api extends ScalatraServlet {
       sb.toString
     }
 
+    get("/recommended/:lastfm"){
+      val bands = bandSlurper.topArtists(params("lastfm"))
+      val recommended = bands.map(b => bandSlurper.getSimilarBandsTo(b.mbid)).filter(res => res != None)
+      recommended
+    }
+
     protected def contextPath = request.getContextPath
 
 //    class JsonSerializer extends Serializer[DBObject] {

@@ -70,7 +70,7 @@ class BandSlurper {
   def topArtists(lastfm: String) = {
     val topArtists = WebClient.get("http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=%s&api_key=b25b959554ed76058ac220b7b2e0a026" format lastfm)
     val someXml = XML.loadString(topArtists)
-    (someXml \ "topartists" \ "artist").map(a => Band((a \ "name").text.trim, (a \ "mbid").text.trim))
+    (someXml \ "topartists" \ "artist").map(a => Band((a \ "name").text.trim, (a \ "mbid").text.trim)).filter(b => b.mbid != "")
   }
 
 }
