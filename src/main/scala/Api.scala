@@ -44,7 +44,15 @@ class Api extends ScalatraServlet {
     get("/recommended/:lastfm"){
       val bands = bandSlurper.topArtists(params("lastfm"))
       val recommended = bands.map(b => bandSlurper.getSimilarBandsTo(b.mbid)).filter(res => res != None)
-      recommended
+      val sb = new StringBuilder
+      sb.append("""{"recommended":[""")
+      recommended.foreach(band => {
+        val likes = band.get.get("like")
+        sb.append("""{"name":"%s", "mbid":"%s", "like":%s},""" format (band.get.get("name"), band.get.get("mbid"), likes))
+
+      })
+      sb.append("]}")
+      sb.toString
     }
 
     protected def contextPath = request.getContextPath
