@@ -9,8 +9,6 @@ import com.mongodb.BasicDBList
 
 class Api extends ScalatraServlet {
 
-    //implicit val formats = new Formats {val dateFormat = DefaultFormats.lossless.dateFormat} + new JsonSerializer
-
     val bandSlurper = new BandSlurper
 
     before {
@@ -56,16 +54,5 @@ class Api extends ScalatraServlet {
     }
 
     protected def contextPath = request.getContextPath
-
-//    class JsonSerializer extends Serializer[DBObject] {
-//
-//      def serialize(implicit format: Formats): PartialFunction[Any, JValue] = {
-//        case list: BasicDBList => Extraction.decompose(List.empty ++ list)
-//        case dbo: DBObject => Extraction.decompose(ListMap.empty ++ dbo.toMap)
-//      }
-//
-//      def deserialze(implicit format: Formats): PartialFunction[(TypeInfo, JValue), DBObject] = throw new UnsupportedOperationException("boom")
-//
-//    }
 
 }
