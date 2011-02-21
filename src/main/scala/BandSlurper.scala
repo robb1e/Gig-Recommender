@@ -24,10 +24,9 @@ class BandSlurper {
   bandsCollection.ensureIndex(MongoDBObject("name" -> 1), "name", true)
   similarCollection.ensureIndex(MongoDBObject("name" -> 1), "name", true)
 
-  configCollection.findOne(MongoDBObject("reload" -> true)).map(res => init)
+  def init = configCollection.findOne(MongoDBObject("reload" -> true)).map(res => load)
 
-
-  def init = {
+  def load = {
      val bandData = Option(getClass.getResourceAsStream("/sxswbands.json"))
       .map(scala.io.Source.fromInputStream(_))
       .map(_.mkString)
@@ -40,26 +39,36 @@ class BandSlurper {
       .filter(bd => bd.mbid != "")
 
     bandsCase.foreach(b => {
-     bandsCollection += MongoDBObject("name" -> b.name.trim, "mbid" -> b.mbid.trim)
-     println("looking for similar bands for '%s'" format b.name)
-     val similar = WebClient.get("http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&mbid=%s&api_key=b25b959554ed76058ac220b7b2e0a026" format b.mbid)
-     val someXml = XML.loadString(similar)
-     val similarBands = (someXml \ "similarartists" \ "artist").map(s => Band((s \ "name").text.trim, (s \ "mbid").text.trim))
-
-      similarBands.foreach(s => similarCollection.findOne(MongoDBObject("mbid" -> s.mbid)) match {
-        case Some(result) => {
-          similarCollection.update(MongoDBObject("mbid" -> s.mbid), MongoDBObject("$addToSet" -> MongoDBObject("like" -> MongoDBObject("name" -> b.name.trim, "mbid" -> b.mbid.trim))))
+        bandsCollection.findOne(MongoDBObject("mbid" -> b.mbid.trim)) match {
+            case Some(i) => println("ignoring " + b.name)
+            case _ => {
+                bandsCollection += MongoDBObject("name" -> b.name.trim, "mbid" -> b.mbid.trim)
+                try{
+                    getSimilarAndUpdate(b.name.trim, b.mbid.trim)
+                } catch {
+                    case ex: Exception => println("ERROR " + ex.getMessage)
+                }
+            }
         }
-        case _ => {
-          similarCollection += MongoDBObject("name" -> s.name, "mbid" -> s.mbid)
-          similarCollection.update(MongoDBObject("mbid" -> s.mbid), MongoDBObject("$addToSet" -> MongoDBObject("like" -> MongoDBObject("name" -> b.name.trim, "mbid" -> b.mbid.trim))))
-        }
-      })
-
-
-   })
+    })
   }
-
+  
+  private def getSimilarAndUpdate(name: String, mbid: String) = {
+      val query = "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&mbid=%s&api_key=b25b959554ed76058ac220b7b2e0a026" format mbid
+      println("looking for similar bands for '%s' at %s" format (name, query))
+      val similar = WebClient.get(query)
+      val someXml = XML.loadString(similar)
+      val similarBands = (someXml \ "similarartists" \ "artist").map(s => Band((s \ "name").text.trim, (s \ "mbid").text.trim))
+      similarBands.foreach(s => similarCollection.findOne(MongoDBObject("mbid" -> s.mbid)) match {
+          case Some(result) => {
+              similarCollection.update(MongoDBObject("mbid" -> s.mbid), MongoDBObject("$addToSet" -> MongoDBObject("like" -> MongoDBObject("name" -> name, "mbid" -> mbid))))
+          }
+          case _ => {
+              similarCollection += MongoDBObject("name" -> s.name, "mbid" -> s.mbid)
+              similarCollection.update(MongoDBObject("mbid" -> s.mbid), MongoDBObject("$addToSet" -> MongoDBObject("like" -> MongoDBObject("name" -> name, "mbid" -> mbid))))
+          }
+     })      
+  }
 
   def getBands = None
 

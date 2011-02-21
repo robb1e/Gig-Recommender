@@ -6,10 +6,16 @@ import net.liftweb.json.JsonAST.{JString, JValue}
 import net.liftweb.json.Extraction
 import com.mongodb.DBObject
 import com.mongodb.BasicDBList
+import javax.servlet.ServletConfig
 
 class Api extends ScalatraServlet {
 
     val bandSlurper = new BandSlurper
+
+    override def init(servletConfig: ServletConfig) = {
+        super.init(servletConfig)
+        bandSlurper.init
+    }
 
     before {
         contentType = "application/json; charset=utf-8"
