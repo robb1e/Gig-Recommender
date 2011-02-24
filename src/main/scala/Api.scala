@@ -56,7 +56,7 @@ class Api extends ScalatraServlet {
 
       })
       sb.append("]}")
-      sb.toString
+      sb.toString.replace(",]}", "]}")
     }
 
     protected def contextPath = request.getContextPath
