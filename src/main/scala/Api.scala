@@ -56,7 +56,13 @@ class Api extends ScalatraServlet {
 
       })
       sb.append("]}")
-      sb.toString.replace(",]}", "]}")
+      val json = sb.toString.replace(",]}", "]}")
+      if (params.keySet.contains("callback")){
+         contentType = "application/javascript; charset=utf-8"
+         params("callback") + "(" + json + ")"
+      } else {
+        json
+      }
     }
 
     protected def contextPath = request.getContextPath
